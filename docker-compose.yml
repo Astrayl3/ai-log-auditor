@@ -1,0 +1,28 @@
+
+services:
+  # Service 1: Database for Log and Warning.
+  mongodb:
+    image: mongo:6.0
+    container_name: log_auditor_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - log_network
+
+  # Service 2: Redis for Cache, Message Broker to handle small logs.
+  redis:
+    image: redis:7.0-alpine
+    container_name: log_auditor_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - log_network
+
+networks:
+  log_network:
+    driver: bridge
+
+volumes:
+  mongo_data:
