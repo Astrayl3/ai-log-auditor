@@ -38,6 +38,7 @@ export class IngestLogUseCase {
 
       //Gọi AI Port để kiểm tra xem dòng log hiện tại có bất thường không dựa trên ngữ cảnh
       const anomalyResult = await this.aiAnalysisService.detectAnomaly(logEntry, recentLogs);
+      console.log('AI analysis result:', JSON.stringify(anomalyResult, null, 2));
 
       let alert = null;
       

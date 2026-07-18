@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 // Import Adapter và Use Case
 import { MongoLogRepository } from './infrastructure/adapters/persistence/mongodb/MongoLogRepository.js';
-import { GeminiAdapter } from './infrastructure/adapters/ai/GeminiAdapter.js';
+import { OpenRouterAdapter } from './infrastructure/adapters/ai/OpenRouterAdapter.js';
 import { IngestLogUseCase } from './application/use-cases/IngestLogUseCase.js';
 
 dotenv.config();
@@ -26,22 +26,26 @@ await mongoose.connect(process.env.MONGO_URI)
 const logRepositoryAdapter = new MongoLogRepository();
 
 // AI Adapter
-const aiAnalysisAdapter = new GeminiAdapter(process.env.GEMINI_API_KEY);
+const aiAnalysisAdapter = new OpenRouterAdapter(process.env.OPENROUTER_API_KEY);
 
 //Khởi tạo Use Case và inject Adapter
 const ingestLogUseCase = new IngestLogUseCase({
   logRepository: logRepositoryAdapter,
   aiAnalysisService: aiAnalysisAdapter,
-  notificationAdapter: null 
+  notificationAdapter: null
 });
 
 //Mở API Endpoint để nhận Log
 app.post('/api/logs', async (req, res) => {
+  console.log('Received /api/logs request');
   try {
     const result = await ingestLogUseCase.execute(req.body);
+    console.log('Completed /api/logs request successfully');
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    console.error('Failed /api/logs request:', error.message);
+    const statusCode = error.message.includes('OpenRouter') || error.message.includes('timeout') ? 502 : 400;
+    res.status(statusCode).json({ success: false, error: error.message });
   }
 });
 
